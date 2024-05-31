@@ -39,45 +39,54 @@ def main():
 
         if st.sidebar.button("Convert"):
             # Perform conversion
-            try:
-                if conversion_format == "pdf":
-                    st.write("Converting PDF file...")
-                    text = pdf_to_text(uploaded_file)
-                elif conversion_format == "txt":
-                    st.write("Converting TXT file...")
-                    text = uploaded_file.read().decode("utf-8")
-                elif conversion_format == "docx":
-                    st.write("Converting DOCX file...")
-                    text = docx_to_text(uploaded_file)
-                elif conversion_format == "ppt":
-                    st.write("Converting PPT file... (not implemented)")
-                    text = ""
-                elif conversion_format == "png" or conversion_format == "jpg":
-                    st.write("Converting image file... (not implemented)")
-                    text = ""
-
-                # Display converted text
-                if text:
-                    st.write("Converted Text:")
-                    st.write(text)
-
-                # Download converted file
-                if st.button("Download Converted File"):
-                    if conversion_format == "txt" or conversion_format == "docx":
-                        with open(f"converted_{uploaded_file.name}", "w", encoding="utf-8") as file:
-                            file.write(text)
-                    elif conversion_format == "pdf":
-                        images = convert_from_path(uploaded_file.name)
-                        for i, image in enumerate(images):
-                            image.save(f"converted_{uploaded_file.name}_{i}.jpg", "JPEG")
+            decoded = False
+            encodings = ["utf-8", "latin-1"]  # Add more encodings if needed
+            for encoding in encodings:
+                try:
+                    if conversion_format == "pdf":
+                        st.write("Converting PDF file...")
+                        text = pdf_to_text(uploaded_file)
+                    elif conversion_format == "txt":
+                        st.write("Converting TXT file...")
+                        text = uploaded_file.read().decode(encoding)
+                    elif conversion_format == "docx":
+                        st.write("Converting DOCX file...")
+                        text = docx_to_text(uploaded_file)
                     elif conversion_format == "ppt":
-                        st.write("Download feature for PPT conversion is not implemented yet.")
+                        st.write("Converting PPT file... (not implemented)")
+                        text = ""
                     elif conversion_format == "png" or conversion_format == "jpg":
-                        st.write("Download feature for image conversion is not implemented yet.")
-                    else:
-                        st.write("Invalid conversion format selected.")
-            except UnicodeDecodeError:
-                st.error("Error: Unable to decode the file using UTF-8 encoding. Please try uploading a different file.")
+                        st.write("Converting image file... (not implemented)")
+                        text = ""
+
+                    # Display converted text
+                    if text:
+                        st.write("Converted Text:")
+                        st.write(text)
+
+                    decoded = True
+                    break  # Exit loop if successful
+                except UnicodeDecodeError:
+                    continue
+
+            if not decoded:
+                st.error("Error: Unable to decode the file. Please try uploading a different file.")
+
+            # Download converted file
+            if st.button("Download Converted File"):
+                if conversion_format == "txt" or conversion_format == "docx":
+                    with open(f"converted_{uploaded_file.name}", "w", encoding="utf-8") as file:
+                        file.write(text)
+                elif conversion_format == "pdf":
+                    images = convert_from_path(uploaded_file.name)
+                    for i, image in enumerate(images):
+                        image.save(f"converted_{uploaded_file.name}_{i}.jpg", "JPEG")
+                elif conversion_format == "ppt":
+                    st.write("Download feature for PPT conversion is not implemented yet.")
+                elif conversion_format == "png" or conversion_format == "jpg":
+                    st.write("Download feature for image conversion is not implemented yet.")
+                else:
+                    st.write("Invalid conversion format selected.")
 
 if __name__ == "__main__":
     main()
